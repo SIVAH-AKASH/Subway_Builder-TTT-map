@@ -4854,32 +4854,46 @@ Just directly share the `<CITY_CODE_LOWER>-mod\` folder (either from the Desktop
 
 There's a community-run registry (`Subway-Builder-Modded/registry` on GitHub) that lets players find and install custom cities. Its companion app, `Railyard` allows installing and playing without needing to set up a tile server manually.
 
-Note that the registry only stores metadata and a pointer to where the mod files are hosted (e.g. a GitHub Release).
+Note that the `Registry` only stores metadata and a pointer to where the mod files are hosted. Also, it can only display base tiles, so the optional layers will have to be manually copied by the player to the mod folder and the tile server will need to be separately run if those layers are needed.
 
-1. Zip the `data` and `tiles` folders and the `index.js` and `manifest.json` files into a '*<CITY_CODE>-mod-v1.0.0.zip*' file.
+1. Generate `config.json` on Debian:
 
-2. Create a repo on Codeberg/GitHub/etc. and create a release with the zip.
+```bash
+python3 -c "
+import os
+from depot.demand import DemandData
 
-3. Create a `<CITY_CODE_LOWER>.json` file in the repo if using something other than GitHub and add the below. SHA256 can be obtained using `certutil -hashfile "<CITY_CODE>-mod-v1.0.0.zip" SHA256` in cmd.
+d = DemandData(
+    fdemand=os.path.expanduser('~/SB_mod_project/03_output/demand_data.json'),
+    map_code='<CITY_CODE>',
+    outputdir=os.path.expanduser('~/SB_mod_project/03_output'),
+)
 
-```json
-{
-  "schema_version": 1,
-  "versions": [
-    {
-      "version": "1.0.0",
-      "game_version": ">=1.0.0",
-      "date": "<Today_date>",
-      "changelog": "Initial release",
-      "download": "https://codeberg.org/<account_name>/<repo_name>/releases/download/v1.0.0/<CITY_CODE>-mod-v1.0.0.zip",
-      "sha256": "<sha256_of_the_zip>"
-    }
-  ]
-}
+d.create_config(
+    name='<Name_of_mod_to_appear_in_game>',
+    bbox=[<BBOX_EXTRACT>],
+    description='<Brief_description_of_mod>',
+    creator='<Your_Name>',
+    version='1.0.0',
+    country='<Country_Code>'
+)
+"
 ```
 
-4. Go to https://github.com/Subway-Builder-Modded/registry/issues/new/choose and click "**Publish New Map**" to submit the mod. "**Source URL**" is the repo URL and "**Custom Update URL**" is the JSON url.
+2. Move the file to Windows:
 
-5. After submission, a PR is auto-created. Once it's merged, the mod is listed on `Railyard`.
+```batch
+scp <VM_USER>@<VM_IP>:~/SB_mod_project/03_output/config.json "%USERPROFILE%\Desktop\SB_mod_project\03_mod\<CITY_CODE_LOWER>-mod"
+```
+
+3. Zip the contents of the `data` folder (5 files), the two base `tiles` (`<CITY_CODE>.pmtiles` and `<CITY_CODE>_foundations.pmtiles`) and the config.json file into a '*<CITY_CODE>-mod-v1.0.0.zip*' file so that they are all at the root location.
+
+4. Create another compressed file with `index.js`, `manifest.json`, the `tiles` folder with the 5 optional tiles and `<CITY_CODE>.pmtiles` and the `tools` folder. These will need to be manually placed in the mod folder by the player, the tile server run separately and mod turned on in-game as `Registry` doesn't touch them.
+
+5. Create a repo on Codeberg/GitHub/etc. and create a release with the zip.
+
+6. Go to https://github.com/Subway-Builder-Modded/registry/issues/new/choose and click "**Publish New Map**" to submit the mod. "**Source URL**" is the repo URL and "**Custom Update URL**" is the JSON url.
+
+7. After submission, a PR is auto-created. Once it's merged, the mod is listed on `Railyard`.
 
 ----
